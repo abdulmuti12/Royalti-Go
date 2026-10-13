@@ -1,0 +1,83 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.app
+
+# Build output
+
+/bin/
+/build/
+/dist/
+/tmp/
+
+# Go workspace
+
+go.work
+go.work.sum
+
+# Environment variables and secrets
+
+.env
+.env.*
+!.env.example
+!.env.example.*
+*.pem
+*.key
+secrets/
+credentials.json
+
+# IDE and editor
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+
+*.log
+logs/
+
+# Test and coverage output
+
+coverage.out
+coverage.html
+*.prof
+
+# Local configuration
+
+config.local.*
+*.local.yaml
+*.local.yml
+
+# Database files
+
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker local overrides
+
+docker-compose.override.yml
+
+Air live reload
+
+.air.toml.local
+
+Generated files
+
+/vendor/
+
+.claude/
+CLAUDE.local.md
