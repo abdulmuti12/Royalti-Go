@@ -115,7 +115,7 @@ func setup(t *testing.T) *fixture {
 	admin := f.insert(t, "admins", domain.Record{"name": "Admin", "email": "admin@test.com", "password": string(hash), "status": "active"})
 	role := f.insert(t, "roles", domain.Record{"name": "Administrator"})
 	f.insert(t, "admin_role", domain.Record{"admin_id": admin["id"], "role_id": role["id"]})
-	for _, name := range []string{"Admins", "Roles", "Promotions", "Banners", "ContactUs", "customer", "Orders", "Transactions", "Brands", "Categories", "Points", "Gifts", "Users", "Settings"} {
+	for _, name := range []string{"Admins", "Roles", "Promotions", "Banners", "ContactUs", "customer", "orders", "Transactions", "Brands", "Categories", "Points", "Gifts", "Users", "Settings"} {
 		menu := f.insert(t, "menus", domain.Record{"name": name, "route": name, "url": "/" + name})
 		f.insert(t, "role_menu", domain.Record{"role_id": role["id"], "menu_id": menu["id"]})
 	}
@@ -444,6 +444,25 @@ func TestMultipartMethodOverrideAndFileCleanup(t *testing.T) {
 	}
 }
 
+func TestOrderEndpointsBlockedWithoutOrdersMenu(t *testing.T) {
+	f := setup(t)
+	role := f.insert(t, "roles", domain.Record{"name": "NoOrders"})
+	plainAdmin := f.insert(t, "admins", domain.Record{"name": "Plain", "email": "plain@test.com", "password": "x", "status": "active"})
+	f.insert(t, "admin_role", domain.Record{"admin_id": plainAdmin["id"], "role_id": role["id"]})
+	tok, e := platform.Tokens{Secret: strings.Repeat("s", 64), Issuer: "http://api.test", TTL: time.Hour}.Issue(domain.Principal{ID: domain.Text(plainAdmin["id"]), Kind: "admin"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, path := range []string{"/api/admins/get-orders", "/api/admins/get-orders/1", "/api/admins/order", "/api/admins/order/1", "/api/admins/get-categories", "/api/admins/get-brands"} {
+		code, b := f.request(t, "GET", path, tok, nil)
+		status(t, code, 403, b)
+	}
+	code, b := f.request(t, "POST", "/api/admins/order", tok, domain.Record{"customer_id": f.customerID, "grand_total": 100})
+	status(t, code, 403, b)
+	code, b = f.request(t, "DELETE", "/api/admins/order/1", tok, nil)
+	status(t, code, 403, b)
+}
+
 func TestOriginAndLoginRateLimit(t *testing.T) {
 	f := setup(t)
 	r := httptest.NewRequest("POST", "/api/admins/login", strings.NewReader(`{"email":"admin@test.com","password":"Password123"}`))
@@ -454,7 +473,7 @@ func TestOriginAndLoginRateLimit(t *testing.T) {
 	if w.Code != 403 {
 		t.Fatal(w.Code)
 	}
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 20; i++ {
 		code, b := f.request(t, "POST", "/api/admins/login", "", domain.Record{"email": "admin@test.com", "password": "wrong"})
 		status(t, code, 401, b)
 	}

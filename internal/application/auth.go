@@ -78,12 +78,17 @@ func (s *Service) Authorize(ctx context.Context, p domain.Principal, menu string
 	if e != nil {
 		return e
 	}
+	allowed := false
 	for _, m := range menus {
 		if strings.EqualFold(domain.Text(m["route"]), menu) {
-			return nil
+			allowed = true
+			break
 		}
 	}
-	return domain.Reject(403, domain.Record{"success": false, "message": "Tidak memiliki akses ke menu: " + menu, "status": 403})
+	if !allowed {
+		return domain.Reject(403, domain.Record{"success": false, "message": "Tidak memiliki akses ke menu: " + menu, "status": 403})
+	}
+	return nil
 }
 func (s *Service) loginData(user domain.Record, kind string) (domain.Record, error) {
 	token, e := s.Tokens.Issue(domain.Principal{ID: domain.Text(user["id"]), Kind: kind})
