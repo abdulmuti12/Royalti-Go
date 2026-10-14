@@ -24,7 +24,7 @@ func decodeInput(w http.ResponseWriter, r *http.Request) (domain.Record, error) 
 			in[key] = strings.TrimSpace(values[0])
 		}
 	}
-	if r.Body == nil || r.ContentLength == 0 {
+	if r.Body == nil || (r.ContentLength == 0 && !strings.Contains(r.Header.Get("Content-Type"), "multipart/")) {
 		return in, nil
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 100<<20)
