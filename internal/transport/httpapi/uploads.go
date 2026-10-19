@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"syscall"
 
 	"github.com/abdulmuti12/api-point-go/internal/domain"
 )
@@ -20,6 +22,34 @@ func fileFields(table string) []string {
 		return []string{"file", "file2", "file3", "file4", "file5"}
 	case "banner":
 		return []string{"file", "file2", "file3", "file4"}
+	}
+	return nil
+}
+
+// ensureNoSymlink rejects a destination whose parent chain under the storage
+// root contains a symlink. An attacker who can plant a symlink inside the
+// storage tree would otherwise redirect O_CREATE writes to a location outside
+// the root.
+func (a *API) ensureNoSymlink(destination string) error {
+	root := filepath.Clean(a.Config.Storage)
+	dir := filepath.Dir(destination)
+	for d := dir; d != "" && d != "/"; d = filepath.Dir(d) {
+		if d == root {
+			break
+		}
+		info, e := os.Lstat(d)
+		if e != nil {
+			if os.IsNotExist(e) {
+				continue
+			}
+			return e
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return domain.Fail("Upload failed", "Storage path contains a symlink")
+		}
+	}
+	if info, e := os.Lstat(destination); e == nil && info.Mode()&os.ModeSymlink != 0 {
+		return domain.Fail("Upload failed", "Storage path is a symlink")
 	}
 	return nil
 }
@@ -110,11 +140,20 @@ func (a *API) uploads(r *http.Request, route Route, in domain.Record) ([]string,
 		}
 		relative := directory + "/file_" + token + ext
 		destination := filepath.Join(a.Config.Storage, filepath.FromSlash(relative))
+		if e = a.ensureNoSymlink(destination); e != nil {
+			reader.Close()
+			return saved, e
+		}
 		if e = os.MkdirAll(filepath.Dir(destination), 0750); e != nil {
 			reader.Close()
 			return saved, e
 		}
-		out, e := os.OpenFile(destination, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0640)
+		var out *os.File
+		if runtime.GOOS == "windows" {
+			out, e = os.OpenFile(destination, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0640)
+		} else {
+			out, e = os.OpenFile(destination, os.O_CREATE|os.O_EXCL|os.O_WRONLY|syscall.O_NOFOLLOW, 0640)
+		}
 		if e != nil {
 			reader.Close()
 			return saved, e
