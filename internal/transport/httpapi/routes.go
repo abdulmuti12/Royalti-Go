@@ -150,6 +150,8 @@ var Routes = []Route{
 	{"POST", "/api/customers/set-password", "set-password", "customers", "", "", true, 8, 60},
 	{"POST", "/api/customers/resend-verification", "resend-verification", "customers", "", "", true, 5, 60},
 	{"POST", "/api/customers/verify-email", "verify-email", "customers", "", "", true, 0, 60},
+	{"POST", "/api/customers/forgot-password", "forgot-password", "customers", "", "", true, 3, 60},
+	{"POST", "/api/customers/reset-password", "reset-password", "customers", "", "", true, 3, 60},
 	{"GET", "/api/customers/me", "me", "customers", "customer", "", true, 0, 60},
 	{"POST", "/api/customers/logout", "logout", "customers", "customer", "", true, 0, 60},
 	{"POST", "/api/customers/change-password", "change-password", "customers", "customer", "", true, 0, 60},
@@ -185,7 +187,7 @@ var Routes = []Route{
 	{"POST", "/api/customers/delete-address", "delete-address", "addresses", "customer", "", true, 20, 60},
 	{"GET", "/api/customers/get-address-texts", "address-texts", "address_text", "customer", "", true, 0, 60},
 	{"POST", "/api/customers/create-address-text", "create-address-text", "address_text", "customer", "", true, 30, 60},
-	{"POST", "/api/customers/toggle-address-text-status", "toggle-address-text", "address_text", "customer", "", true, 30, 60},
+	{"POST", "/api/customers/toggle-address-text-status", "toggle-address-text", "address_text", "customer", "", true, 200, 60},
 	{"POST", "/api/customers/update-address-text", "update-address-text", "address_text", "customer", "", true, 30, 60},
 	{"POST", "/api/customers/delete-address-text", "delete-address-text", "address_text", "customer", "", true, 20, 60},
 }

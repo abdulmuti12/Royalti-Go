@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -46,7 +48,14 @@ func (a *API) handle(w http.ResponseWriter, r *http.Request, route Route) {
 		if e != nil {
 			host = r.RemoteAddr
 		}
-		if !a.limiter.allow(host+":"+route.Path, route.Limit, time.Duration(route.Minutes)*time.Minute) {
+		limit := route.Limit
+		// Allow overriding the per-route limit at runtime via RATE_LIMIT_MAX,
+		// so the threshold can be raised without a rebuild when the default
+		// (e.g. 8 logins / 60s) is too tight for dev / demo usage.
+		if envLimit, err := strconv.Atoi(os.Getenv("RATE_LIMIT_MAX")); err == nil && envLimit > 0 {
+			limit = envLimit
+		}
+		if !a.limiter.allow(host+":"+route.Path, limit, time.Duration(route.Minutes)*time.Minute) {
 			w.Header().Set("Retry-After", "3600")
 			writeJSON(w, 429, domain.Record{"message": "Too Many Attempts."})
 			return
@@ -187,18 +196,16 @@ func (l *limiter) allow(key string, limit int, window time.Duration) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	now := time.Now()
-	if len(l.buckets) > 10000 {
-		for k, b := range l.buckets {
-			if !now.Before(b.Until) {
-				delete(l.buckets, k)
-			}
-		}
-		if len(l.buckets) > 10000 {
-			return false
+	// Prune expired buckets on every call so the map stays bounded and
+	// stale keys can't push us over the 10000-key cap that would make
+	// *new* requests fail open-closed unexpectedly.
+	for k, b := range l.buckets {
+		if now.After(b.Until) {
+			delete(l.buckets, k)
 		}
 	}
 	b := l.buckets[key]
-	if !now.Before(b.Until) {
+	if now.After(b.Until) {
 		b = bucket{Until: now.Add(window)}
 	}
 	if b.Count >= limit {

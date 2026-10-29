@@ -108,7 +108,7 @@ func (s *Service) putToken(ctx context.Context, kind, email string, ttl time.Dur
 		if kind == "reset" {
 			table = "admins"
 		}
-		if _, e := db.Find(ctx, table, domain.Query{Filters: []domain.Filter{domain.Equal("email", email)}, Lock: true}); e != nil {
+		if _, e := db.Find(ctx, table, domain.Query{Filters: []domain.Filter{domain.Equal("email", email)}, Lock: true}); e != nil && !errors.Is(e, domain.ErrNotFound) {
 			return e
 		}
 		if e := db.Delete(ctx, "point_go_tokens", domain.Q(domain.Equal("key", key))); e != nil {
@@ -251,6 +251,23 @@ func (s *Service) auth(ctx context.Context, c domain.Command) (domain.Result, er
 		hash, e := s.Passwords.Hash(password)
 		if e != nil {
 			return domain.Result{}, e
+		}
+		// Unverified accounts can reach this handler via the "password already
+		// chosen" edge case (email verified outside the app, or the setup token
+		// still valid after verification). Mark verify=1 so subsequent logins
+		// succeed; the token consumption below still fails with 400 if the
+		// token is already used, as before.
+		if c.Action == "set-password" {
+			existing, e := s.Optional(ctx, table, domain.Q(domain.Equal("email", domain.Text(in["email"]))))
+			if e != nil {
+				return domain.Result{}, e
+			}
+			if existing != nil && domain.Integer(existing["verify"]) != 1 {
+				e = s.Store.Update(ctx, table, idQuery(existing["id"]), domain.Record{"verify": 1, "email_verified_at": time.Now().UTC()})
+				if e != nil {
+					return domain.Result{}, e
+				}
+			}
 		}
 		if c.Action == "change-password" {
 			user, e := s.Find(ctx, table, c.Principal.ID)

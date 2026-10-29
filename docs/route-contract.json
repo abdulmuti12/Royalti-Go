@@ -2354,9 +2354,35 @@
       "table": "address_text",
       "rate_limit": 20,
       "rate_minutes": 60
+    },
+    {
+      "method": "POST",
+      "path": "/api/customers/forgot-password",
+      "controller": "Closure",
+      "source_action": "forgot-password",
+      "guard": "",
+      "menu": "",
+      "source_defined": true,
+      "action": "forgot-password",
+      "table": "customers",
+      "rate_limit": 3,
+      "rate_minutes": 60
+    },
+    {
+      "method": "POST",
+      "path": "/api/customers/reset-password",
+      "controller": "Closure",
+      "source_action": "reset-password",
+      "guard": "",
+      "menu": "",
+      "source_defined": true,
+      "action": "reset-password",
+      "table": "customers",
+      "rate_limit": 3,
+      "rate_minutes": 60
     }
   ],
-  "source_routes_sha256": "49bd44ffffc68d7fb7745102ce06d6fe50832f06b8116826746c8e837c7fc05e",
-  "source_defined_method_count": 156,
+  "source_routes_sha256": "b7f518d2bff0c2eab0cc576657e0bd10de584465143f26103951d5496ea2b28c",
+  "source_defined_method_count": 158,
   "source_missing_method_count": 25
 }

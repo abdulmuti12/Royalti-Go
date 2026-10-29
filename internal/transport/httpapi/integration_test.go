@@ -199,7 +199,7 @@ func TestRouteInventoryAndDispatch(t *testing.T) {
 	if e = json.Unmarshal(data, &snapshot); e != nil {
 		t.Fatal(e)
 	}
-	if len(snapshot.Routes) != 181 || len(Routes) != len(snapshot.Routes) {
+	if len(snapshot.Routes) != 183 || len(Routes) != len(snapshot.Routes) {
 		t.Fatalf("route count: %d vs %d", len(snapshot.Routes), len(Routes))
 	}
 	seen := map[string]bool{}
