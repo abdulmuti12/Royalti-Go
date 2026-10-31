@@ -14,7 +14,9 @@ import (
 
 func fileFields(table string) []string {
 	switch table {
-	case "brands", "category", "gifts", "logos":
+	case "gifts":
+		return []string{"image", "image2", "image3"}
+	case "brands", "category", "logos":
 		return []string{"image"}
 	case "member_levels":
 		return []string{"file"}

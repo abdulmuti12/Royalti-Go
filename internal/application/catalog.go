@@ -20,7 +20,7 @@ func (s *Service) resource(ctx context.Context, t string, r domain.Record) (doma
 		"promotions":    {"id", "name", "description", "note", "type", "status", "file", "file2", "file3", "file4", "file5", "created_at", "updated_at"},
 		"logos":         {"id", "description", "image", "is_active"},
 		"points":        {"id", "name", "status", "price_point", "range_point", "point", "description", "created_at", "updated_at"},
-		"gifts":         {"id", "name", "total_point", "image", "description", "status", "created_at", "updated_at"},
+		"gifts":         {"id", "name", "total_point", "image", "image2", "image3", "description", "status", "created_at", "updated_at"},
 		"member_levels": {"id", "name", "min_point", "max_point", "file", "description", "status", "created_at", "updated_at"},
 		"contact_us":    {"id", "name", "email", "phone_number", "description", "created_at", "updated_at"},
 		"transaction":   {"id", "transaction_code", "order_id", "total_payment", "status", "note", "address_id", "created_at", "updated_at"},

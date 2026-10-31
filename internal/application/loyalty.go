@@ -51,7 +51,7 @@ func (s *Service) claimView(ctx context.Context, r domain.Record) (domain.Record
 	for _, rel := range []struct {
 		Field, Table, FK string
 		Fields           []string
-	}{{"customer", "customers", "customer_id", []string{"id", "name", "full_name", "email", "phone_number"}}, {"gift", "gifts", "gift_id", []string{"id", "name", "total_point", "image", "description"}}, {"approver", "admins", "approved_by", []string{"id", "name", "email"}}} {
+	}{{"customer", "customers", "customer_id", []string{"id", "name", "full_name", "email", "phone_number"}}, {"gift", "gifts", "gift_id", []string{"id", "name", "total_point", "image", "image2", "image3", "description"}}, {"approver", "admins", "approved_by", []string{"id", "name", "email"}}} {
 		row, e := s.Optional(ctx, rel.Table, idQuery(r[rel.FK]))
 		if e != nil {
 			return nil, e
@@ -178,9 +178,13 @@ func (s *Service) loyalty(ctx context.Context, c domain.Command) (domain.Result,
 			}
 			o["gift_name"] = nil
 			o["gift_image"] = nil
+			o["gift_image2"] = nil
+			o["gift_image3"] = nil
 			if gift != nil {
 				o["gift_name"] = gift["name"]
 				o["gift_image"] = s.Asset(gift["image"])
+				o["gift_image2"] = s.Asset(gift["image2"])
+				o["gift_image3"] = s.Asset(gift["image3"])
 			}
 			out = append(out, o)
 		}
@@ -426,6 +430,8 @@ func (s *Service) gifts(ctx context.Context, c domain.Command) (domain.Result, e
 		id := domain.Text(g["id"])
 		o := domain.Pick(g, "id", "name", "total_point", "description")
 		o["image"] = s.Asset(g["image"])
+		o["image2"] = s.Asset(g["image2"])
+		o["image3"] = s.Asset(g["image3"])
 		o["claimable"] = total >= domain.Integer(g["total_point"]) && pending[id] == nil
 		o["pending_claim"] = nil
 		o["claim_status"] = nil
