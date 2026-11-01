@@ -429,6 +429,7 @@ func (s *Service) gifts(ctx context.Context, c domain.Command) (domain.Result, e
 	for _, g := range gifts {
 		id := domain.Text(g["id"])
 		o := domain.Pick(g, "id", "name", "total_point", "description")
+		o["is_featured"] = domain.Bool(g["is_featured"])
 		o["image"] = s.Asset(g["image"])
 		o["image2"] = s.Asset(g["image2"])
 		o["image3"] = s.Asset(g["image3"])

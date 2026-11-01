@@ -204,6 +204,7 @@ type Gift struct {
 	Description *string    `gorm:"column:description;type:text"`
 	Status      *string    `gorm:"column:status;size:255"`
 	TotalPoint  *int64     `gorm:"column:total_point"`
+	IsFeatured  *bool      `gorm:"column:is_featured"`
 	CreatedAt   *time.Time `gorm:"column:created_at"`
 	UpdatedAt   *time.Time `gorm:"column:updated_at"`
 }
@@ -483,7 +484,7 @@ var schemas = map[string]Schema{
 	"email_subscribers":       {Model: &EmailSubscriber{}, UUID: false, Timestamps: true, Columns: fields("id email created_at updated_at")},
 	"logos":                   {Model: &Logo{}, UUID: false, Timestamps: true, Columns: fields("id description image is_active created_at updated_at")},
 	"points":                  {Model: &Point{}, UUID: true, Timestamps: true, Columns: fields("id name status description price_point range_point point created_at updated_at")},
-	"gifts":                   {Model: &Gift{}, UUID: true, Timestamps: true, Columns: fields("id name image image2 image3 description status total_point created_at updated_at")},
+	"gifts":                   {Model: &Gift{}, UUID: true, Timestamps: true, Columns: fields("id name image image2 image3 description status total_point is_featured created_at updated_at")},
 	"member_levels":           {Model: &MemberLevel{}, UUID: true, Timestamps: true, Columns: fields("id name file description status min_point max_point created_at updated_at")},
 	"orders":                  {Model: &Order{}, UUID: false, Timestamps: true, Columns: fields("id order_number customer_id recipient_name phone shipping_address province_name city_name district_name subdistrict_name postal_code status notes province_id city_id district_id subdistrict_id subtotal shipping_cost grand_total created_at updated_at")},
 	"order_items":             {Model: &OrderItem{}, UUID: false, Timestamps: true, Columns: fields("id product_name name variant_name image order_id product_id quantity price category_id brand_id created_at updated_at")},
