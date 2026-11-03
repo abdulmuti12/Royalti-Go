@@ -327,7 +327,7 @@ func (s *Service) auth(ctx context.Context, c domain.Command) (domain.Result, er
 			if e != nil {
 				return domain.Result{}, e
 			}
-			link := s.FrontendURL + "/reset-password?token=" + url.QueryEscape(token) + "&email=" + url.QueryEscape(email)
+			link := s.FrontendURL + "/customer/reset-password?token=" + url.QueryEscape(token) + "&email=" + url.QueryEscape(email)
 			if e = s.Mail.Send(ctx, email, "Reset Password Notification", link); e != nil {
 				return domain.Result{}, e
 			}

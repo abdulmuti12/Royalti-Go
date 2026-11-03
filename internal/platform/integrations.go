@@ -33,25 +33,21 @@ func (m SMTPMailer) Send(ctx context.Context, to, subject, body string) error {
 	if strings.ContainsAny(subject+to+c.MailFrom, "\r\n") {
 		return fmt.Errorf("invalid mail headers")
 	}
-	dialer := net.Dialer{Timeout: 10 * time.Second}
+	dialer := net.Dialer{Timeout: 15 * time.Second}
 	var conn net.Conn
 	var e error
 	implicitTLS := c.MailEncryption == "ssl" || c.MailPort == "465"
 	if implicitTLS {
 		tlsDialer := tls.Dialer{NetDialer: &dialer, Config: &tls.Config{ServerName: c.MailHost, MinVersion: tls.VersionTLS12}}
-		conn, e = tlsDialer.DialContext(ctx, "tcp", net.JoinHostPort(c.MailHost, c.MailPort))
+		conn, e = tlsDialer.Dial("tcp", net.JoinHostPort(c.MailHost, c.MailPort))
 	} else {
-		conn, e = dialer.DialContext(ctx, "tcp", net.JoinHostPort(c.MailHost, c.MailPort))
+		conn, e = dialer.Dial("tcp", net.JoinHostPort(c.MailHost, c.MailPort))
 	}
 	if e != nil {
 		return e
 	}
 	defer conn.Close()
-	deadline := time.Now().Add(15 * time.Second)
-	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
-		deadline = d
-	}
-	if e = conn.SetDeadline(deadline); e != nil {
+	if e = conn.SetDeadline(time.Now().Add(45 * time.Second)); e != nil {
 		return e
 	}
 	client, e := smtp.NewClient(conn, c.MailHost)

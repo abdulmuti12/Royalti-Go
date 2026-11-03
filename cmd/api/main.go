@@ -55,7 +55,7 @@ func run() error {
 		return e
 	}
 	service := &application.Service{Store: gormrepo.New(db), Tokens: platform.Tokens{Secret: c.Secret, Issuer: c.AppURL, TTL: c.TokenTTL, AcceptLegacy: c.AcceptLegacyTokens}, Passwords: platform.Passwords{}, Mail: platform.SMTPMailer{Config: c}, Google: platform.Google{ClientID: c.GoogleClientID, ClientSecret: c.GoogleClientSecret}, AppURL: c.AppURL, FrontendURL: c.FrontendURL}
-	server := &http.Server{Addr: c.Address, Handler: httpapi.New(service, c), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 1 << 20}
+	server := &http.Server{Addr: c.Address, Handler: httpapi.New(service, c), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 60 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 1 << 20}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	errCh := make(chan error, 1)
