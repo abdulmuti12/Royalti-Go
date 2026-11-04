@@ -77,7 +77,7 @@ func (m SMTPMailer) Send(ctx context.Context, to, subject, body string) error {
 	if e != nil {
 		return e
 	}
-	_, e = io.WriteString(w, "From: "+c.MailFrom+"\r\nTo: "+to+"\r\nSubject: "+subject+"\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n"+body)
+	_, e = io.WriteString(w, "From: "+c.MailFrom+"\r\nTo: "+to+"\r\nSubject: "+subject+"\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"+body)
 	closeErr := w.Close()
 	if e != nil {
 		return e

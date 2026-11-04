@@ -328,7 +328,16 @@ func (s *Service) auth(ctx context.Context, c domain.Command) (domain.Result, er
 				return domain.Result{}, e
 			}
 			link := s.FrontendURL + "/customer/reset-password?token=" + url.QueryEscape(token) + "&email=" + url.QueryEscape(email)
-			if e = s.Mail.Send(ctx, email, "Reset Password Notification", link); e != nil {
+			body := fmt.Sprintf(`<div style="text-align:center;font-family:Arial,sans-serif;">
+<img src="%s/images/tla-logo.png" alt="TLA" style="height:60px;margin-bottom:20px;" />
+<p>Halo,</p>
+<p>Klik tombol di bawah untuk mengatur ulang kata sandi Anda.</p>
+<p style="margin:30px 0;">
+<a href="%s" style="display:inline-block;padding:14px 32px;background:#1a1a1a;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Reset Password</a>
+</p>
+<p style="color:#666;font-size:12px;">Tautan berlaku selama 1 jam. Jika tidak meminta, abaikan email ini.</p>
+</div>`, s.FrontendURL, link)
+			if e = s.Mail.Send(ctx, email, "Reset Password Notification", body); e != nil {
 				return domain.Result{}, e
 			}
 			return domain.Success(nil, "Reset link berhasil dikirim."), nil
@@ -350,7 +359,16 @@ func (s *Service) auth(ctx context.Context, c domain.Command) (domain.Result, er
 			return domain.Result{}, e
 		}
 		link := s.FrontendURL + "/verify-email?email=" + url.QueryEscape(email) + "&token=" + url.QueryEscape(token)
-		if e = s.Mail.Send(ctx, email, "Verifikasi Email", link); e != nil {
+		body := fmt.Sprintf(`<div style="text-align:center;font-family:Arial,sans-serif;">
+<img src="%s/images/tla-logo.png" alt="TLA" style="height:60px;margin-bottom:20px;" />
+<p>Halo,</p>
+<p>Klik tombol di bawah untuk memverifikasi email Anda.</p>
+<p style="margin:30px 0;">
+<a href="%s" style="display:inline-block;padding:14px 32px;background:#1a1a1a;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Verifikasi Email</a>
+</p>
+<p style="color:#666;font-size:12px;">Tautan berlaku selama 24 jam.</p>
+</div>`, s.FrontendURL, link)
+		if e = s.Mail.Send(ctx, email, "Verifikasi Email", body); e != nil {
 			return domain.Result{}, e
 		}
 		return domain.Result{Status: 200, Body: domain.Record{"success": true, "message": "Link verifikasi telah dikirim ke " + email, "email": email}}, nil
@@ -420,7 +438,20 @@ func (s *Service) registerCustomer(ctx context.Context, c domain.Command, admin 
 		}
 		// The account is committed only after the welcome message is accepted by
 		// SMTP. A failed send rolls back the newly created account and address.
-		return s.Mail.Send(ctx, domain.Text(user["email"]), "Selamat Datang di Casa Italia Living", fmt.Sprintf("Halo %s,\nEmail: %s\nPassword sementara: %s\nSilakan login dan atur password baru.\n%s", domain.Text(user["full_name"]), domain.Text(user["email"]), temp, s.FrontendURL))
+		loginURL := s.FrontendURL + "/customer/login"
+		body := fmt.Sprintf(`<div style="text-align:center;font-family:Arial,sans-serif;">
+<img src="%s/images/tla-logo.png" alt="TLA" style="height:60px;margin-bottom:20px;" />
+<p>Selamat datang, %s!</p>
+<p>Akun Anda telah dibuat. Gunakan kredensial di bawah untuk login dan mengatur kata sandi baru.</p>
+<p style="background:#f5f5f5;padding:12px;border-radius:4px;margin:20px 0;">
+Email: <strong>%s</strong><br/>
+Password sementara: <strong>%s</strong>
+</p>
+<p style="margin:30px 0;">
+<a href="%s" style="display:inline-block;padding:14px 32px;background:#1a1a1a;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Login Sekarang</a>
+</p>
+</div>`, s.FrontendURL, domain.Text(user["full_name"]), domain.Text(user["email"]), temp, loginURL)
+		return s.Mail.Send(ctx, domain.Text(user["email"]), "Selamat Datang di Casa Italia Living", body)
 	})
 	if e != nil {
 		return domain.Result{}, e
